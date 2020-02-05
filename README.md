@@ -1,6 +1,6 @@
 # Massive Boolean Addon
 ## Overview
-This Blender addon lets you combine all selected objects, using either "Union" or "Difference" Boolean operations.
+This Blender 2.8x addon lets you combine all selected objects, using either "Union" or "Difference" Boolean operations.
 
 ![Screenshot](http://www.philippseifried.com/github/massive_bool_screenshot.png)
 
@@ -8,7 +8,7 @@ Typically, as you combine more and more objects with Boolean operations, you'll 
 **While results are by no means guaranteed, this should allow you to combine much more objects than other Boolean addons (on the order of hundreds, if their geometry is simple).**
 
 ## Installation
-Navigate to Edit -> Preferences -> Addons -> Install. Select the .zip file or the unzipped .py file.
+Navigate to Edit -> Preferences -> Addons -> Install. Select the .zip file or the unzipped massive_boolean.py file.
 
 ## How To Use
 The addon lives in the 3D View's sidebar (press N while the cursor is over the 3D View to access it), in the Edit tab. Select all objects you want to combine. Your selection's active object (usually the last object you selected) will be the one to which all other objects will be added ("Union") or from which they will be subtracted ("Difference")
