@@ -15,7 +15,8 @@ The addon lives in the 3D View's sidebar (press N while the cursor is over the 3
 
 ![Parameters](http://www.philippseifried.com/github/massive_bool_params.png)
 
-The "Massive Boolean" panel has an "Options" sub-panel, which lets you configure which operations should be run after every boolean step. By default, every option except for "Merge By Distance" is activated, as this produced the best results in the tests I ran. Depending on what geometry you're trying to combine, activating or deactivating some of the listed operations might work better for you. 
+The "Massive Boolean" panel has an "Options" sub-panel, which lets you configure which operations should be run after every boolean step. The above screenshot shows the default settings, which generally produced the best results in the tests I ran. Depending on what geometry you're trying to combine, activating or deactivating some of the listed operations might work better for you. 
+**TIPP:** If you're combining geometry with a lot of perfectly aligned faces, try enabling "Jitter Operand Position" to move every boolean operand by a tiny random offset.
 
 ![Parameters](http://www.philippseifried.com/github/massive_bool_console.png)
 

@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Massive Boolean",
     "author": "Philipp Seifried",
-    "version": (0, 1, 0),
+    "version": (0, 1, 1),
     "blender": (2, 80, 0),
     "description": "Joins all selected objects, performing mesh cleanup operations after each boolean operation.",
     "warning": "Beta",
@@ -94,12 +94,26 @@ class Object_OT_massive_boolean(Operator):
         last_count = 0
 
         while len(ob_list) > 0:
+
+            bool_ob = ob_list[0]
+            bool_ob.data = bool_ob.data.copy()
+            self.select_single_object(bool_ob, context)
+            #bpy.ops.object.make_single_user(type='SELECTED_OBJECTS', object=True, obdata=True, material=False, animation=False)
+            bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+            if (context.scene.massive_boolean_settings.jitter):
+                max_dist = context.scene.massive_boolean_settings.jitter_max_dist
+                print (f"jittering {bool_ob.location}")
+                bool_ob.location.x += random.uniform(-max_dist, max_dist)
+                bool_ob.location.y += random.uniform(-max_dist, max_dist)
+                bool_ob.location.z += random.uniform(-max_dist, max_dist)
+                self.scene_update(context)
+                print (f"jittered {bool_ob.location}")
+
+            ob_list.remove(bool_ob)
+
             self.select_single_object(main_ob, context)
             wm.progress_update(1-len(ob_list)/orig_len)
             # boolean ops
-            bool_ob = ob_list[0]
-            bool_ob.data = bool_ob.data.copy()
-            ob_list.remove(bool_ob)
             bpy.ops.object.modifier_add(type='BOOLEAN')
             context.object.modifiers["Boolean"].operation = self.operation
             context.object.modifiers["Boolean"].double_threshold = 0
@@ -162,6 +176,21 @@ class Object_OT_massive_boolean(Operator):
                     bpy.ops.mesh.merge(type='COLLAPSE')
                     bpy.ops.mesh.delete_loose()
                     bpy.ops.object.editmode_toggle()
+                    self.scene_update(context)
+
+            if (C.scene.massive_boolean_settings.beautify_faces):
+                bpy.ops.object.editmode_toggle()
+                bpy.ops.mesh.select_all(action='SELECT')
+                bpy.ops.mesh.beautify_fill(angle_limit=3.14159)
+                bpy.ops.object.editmode_toggle()
+                self.scene_update(context)
+
+            if (C.scene.massive_boolean_settings.recalc_normals):
+                bpy.ops.object.editmode_toggle()
+                bpy.ops.mesh.select_all(action='SELECT')
+                bpy.ops.mesh.normals_make_consistent(inside=False)
+                bpy.ops.object.editmode_toggle()
+                self.scene_update(context)
 
             # time estimate:
             c_time = time.time()*1000.0 - time_start
@@ -235,6 +264,9 @@ class VIEW3D_PT_massive_boolean(Panel):
         if settings.settings_expanded:
             box.prop(settings, "delete_operands")
             box.prop(settings, "sort_by_distance")
+            box.prop(settings, "jitter")
+            if (settings.jitter):
+                box.prop(settings, "jitter_max_dist")
 
             box.label(text="Clean-up steps per operand:")
             box.prop(settings, "remove_doubles")
@@ -245,6 +277,9 @@ class VIEW3D_PT_massive_boolean(Panel):
             box.prop(settings, "dissolve_degenerate")
             box.prop(settings, "delete_loose")
             box.prop(settings, "collapse_non_manifold")
+            box.prop(settings, "beautify_faces")
+            box.prop(settings, "recalc_normals")
+            
 
         warning_modifiers = len(main_ob.modifiers) != 0
         num_non_meshes = len( [o for o in ob_list if o.type != 'MESH'] )
@@ -275,7 +310,10 @@ class Settings_massive_boolean(bpy.types.PropertyGroup):
     
     sort_by_distance : bpy.props.BoolProperty(name="Sort Operands By Distance", default=False)
     delete_operands : bpy.props.BoolProperty(name="Delete Operands", default=True)
-    
+
+    jitter : bpy.props.BoolProperty(name="Jitter Operand Position", default=False)
+    jitter_max_dist : bpy.props.FloatProperty(name="Max Jitter Distance", default=0.01, min=0.0)
+
     remove_doubles : bpy.props.BoolProperty(name="Merge By Distance", default=False)
     remove_doubles_threshold : bpy.props.FloatProperty(name="Distance Threshold", default=0.01, min=0.0)
 
@@ -284,6 +322,8 @@ class Settings_massive_boolean(bpy.types.PropertyGroup):
     dissolve_degenerate : bpy.props.BoolProperty(name="Degenerate Dissolve", default=True)
     delete_loose : bpy.props.BoolProperty(name="Delete Loose", default=True)
     collapse_non_manifold : bpy.props.BoolProperty(name="Collapse Non-Manifold", default=True)
+    beautify_faces : bpy.props.BoolProperty(name="Beautify Faces", default=False)
+    recalc_normals : bpy.props.BoolProperty(name="Recalculate Normals", default=True)
 
 
 classes = (
